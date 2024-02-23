@@ -1,24 +1,37 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user-create.dto';
 import { SignInUserDto } from './dto/user-sign-in.dto';
+import { Authenticate } from 'src/guards/auth.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
   @Get()
-  findAll(): string {
-    return this.userService.findAll();
+  async findAll() {
+    return await this.userService.findAll();
   }
 
   @Post()
-  create(@Body() user: CreateUserDto) {
-    return this.userService.create(user);
+  async create(@Body() user: CreateUserDto) {
+    return await this.userService.create(user);
   }
 
 
   @Post('sign-in')
-  signIn(@Body() user: SignInUserDto) {
-    return this.userService.signIn(user);
+  async signIn(@Body() user: SignInUserDto) {
+    return await this.userService.signIn(user);
+  }
+
+
+  @Get('authorize')
+  async authorize(@Query('token') token:string){
+    return await this.userService.authorizeUser(token);
+  }
+
+  @UseGuards(Authenticate)
+  @Get('profile')
+  async profile(@Req() request:any){
+    return request["user"];
   }
 }

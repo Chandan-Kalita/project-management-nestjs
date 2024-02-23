@@ -56,11 +56,30 @@ export class UserService {
       }
   }
 
+  async authorizeUser(token:string){
+    try{
+      const payload = await this.jwtService.verifyAsync(token);
+      const user = await this.userModel.findOne({_id:payload.sub});
+      if(!user){
+        throw new Error();
+      }
+      return user;
+    }catch(error){
+      console.log(error);
+      throw new UnauthorizedException()
+    }
+  }
+
   async genJwt(data:any) {
     const payload = { sub: data.id, email: data.email };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
+
+  async profile(user){
+    return user;
+  }
+
 
 }
