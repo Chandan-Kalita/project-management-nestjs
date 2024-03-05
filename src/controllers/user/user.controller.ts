@@ -7,7 +7,7 @@ import { UserService } from 'src/services/user.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
   @Get()
   async findAll() {
     return await this.userService.findAll();
@@ -26,13 +26,18 @@ export class UserController {
 
 
   @Get('authorize')
-  async authorize(@Query('token') token:string){
+  async authorize(@Query('token') token: string) {
     return await this.userService.authorizeUser(token);
   }
 
   @UseGuards(Authenticate)
   @Get('profile')
-  async profile(@User() user:any){
+  async profile(@User() user: any) {
     return user;
+  }
+
+  @Get("create-admin")
+  async createAdmin() {
+    return await this.userService.createAdmin();
   }
 }

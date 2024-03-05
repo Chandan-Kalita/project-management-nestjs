@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  phoneNumber String?  @unique
+  name        String?
+  email       String
+  password    String
+  userType    UserType @default(USER)
+}
+
+// model Referals {
+//   id               String   @id @default(uuid())
+//   referringUserId  String   @unique //the user who is being refered
+//   referringUser    User     @relation("referringUser", fields: [referringUserId], references: [id])
+//   referredByUserId String //the use who referred
+//   referredBy       User     @relation("referredBy", fields: [referredByUserId], references: [id])
+//   createdAt        DateTime @default(now())
+// }
+
+enum UserType {
+  ADMIN
+  USER
+}

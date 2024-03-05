@@ -6,11 +6,10 @@ import { Post } from 'src/schema/post.schema';
 @Injectable()
 export class PostService {
     constructor(
-        @InjectModel(Post.name) private postModel: Model<Post>,
-      ) {}
+    ) { }
 
-    async create(post, user){
-        const createdPost = await new this.postModel({title:post.title, body:post.body, author:user.id})
-        return createdPost; 
+    async create(post: { title: any; body: any; }, user: { id: any; }) {
+        // const createdPost = await new this.postModel({title:post.title, body:post.body, author:user.id})
+        // return createdPost; 
     }
 }

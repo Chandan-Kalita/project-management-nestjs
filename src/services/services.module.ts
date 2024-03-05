@@ -6,15 +6,16 @@ import { User, UserSchema } from 'src/schema/user.schema';
 import { Post, PostSchema } from 'src/schema/post.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { Constants } from 'src/config/constants';
+import { PrismaService } from './helpers/prisma.service';
 
 @Module({
-    imports:[MongooseModule.forFeature([{ name: User.name, schema: UserSchema }, {name:Post.name, schema:PostSchema}]),
+  imports: [
     JwtModule.register({
-        global: true,
-        secret: Constants.jwtSecret,
-        signOptions: { expiresIn: '10h' },
-      }),],
-    providers:[PostService, UserService],
-    exports:[PostService, UserService]
+      global: true,
+      secret: Constants.jwtSecret,
+      signOptions: { expiresIn: '10h' },
+    }),],
+  providers: [PostService, UserService, PrismaService],
+  exports: [PostService, UserService, PrismaService]
 })
-export class ServicesModule {}
+export class ServicesModule { }
