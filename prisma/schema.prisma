@@ -29,6 +29,26 @@ model User {
 //   createdAt        DateTime @default(now())
 // }
 
+model Proposal {
+  id                  String @id @default(uuid())
+  project_title       String
+  project_description String
+  objective           String
+  duration            Int
+  budget              Int
+  state               String
+  district            String
+  bank_name           String
+  ifsc_code           String
+  account_number      String
+  income_source       String
+  income              String
+  land_size           Int
+  photo_path          String
+  address_proof_path  String
+  income_proof_path   String
+}
+
 enum UserType {
   ADMIN
   USER

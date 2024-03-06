@@ -6,6 +6,8 @@ import { APP_PIPE } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ControllersModule } from './controllers/controllers.module';
 import { ServicesModule } from './services/services.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 @Module({
   imports: [
     MongooseModule.forRoot(
@@ -17,4 +19,4 @@ import { ServicesModule } from './services/services.module';
   controllers: [AppController],
   providers: [AppService, { provide: APP_PIPE, useClass: ZodValidationPipe }],
 })
-export class AppModule {}
+export class AppModule { }

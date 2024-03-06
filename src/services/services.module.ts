@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PostService } from './post.service';
+import { ProposalService } from './proposal.service';
 import { UserService } from './user.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/schema/user.schema';
@@ -15,7 +15,7 @@ import { PrismaService } from './helpers/prisma.service';
       secret: Constants.jwtSecret,
       signOptions: { expiresIn: '10h' },
     }),],
-  providers: [PostService, UserService, PrismaService],
-  exports: [PostService, UserService, PrismaService]
+  providers: [ProposalService, UserService, PrismaService],
+  exports: [ProposalService, UserService, PrismaService]
 })
 export class ServicesModule { }
