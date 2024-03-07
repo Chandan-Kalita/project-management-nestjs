@@ -108,4 +108,30 @@ export class ProposalService {
             }
         }
     }
+
+    async getProposalsCount(user){
+        let count;
+        if (user.userType == "ADMIN") {
+            count = await this.prismaClient.proposal.groupBy({
+                by:['status'],
+                _count:{
+                    id:true,                
+                }
+            })
+            
+        }
+        let a = {ALL:0};
+        for(let i = 0; i<count.length; i++){
+            a[count[i].status] = count[i]._count.id
+            a["ALL"] += count[i]._count.id
+        }
+        return a;
+        // for(const property in count){
+        //     console.log();
+            
+        // }
+        
+
+
+    }
 }

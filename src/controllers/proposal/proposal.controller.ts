@@ -45,4 +45,10 @@ export class ProposalController {
         return await this.proposalService.getProposals(user, filters)
     }
 
+    @UseGuards(Authenticate)
+    @Get("get-proposal-counts")
+    async getProposalCount(@User() user) {
+        return await this.proposalService.getProposalsCount(user)
+    }
+
 }
