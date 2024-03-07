@@ -17,20 +17,20 @@ export class ProposalController {
         { name: 'address_proof' },
     ]))
     async create(
-        @Body() body: any,
+        @Body() body: CreateProposalDto,
         @User() user,
         @UploadedFiles(
         ) files: { photo: Express.Multer.File, income_proof: Express.Multer.File, address_proof: Express.Multer.File },
     ) {
         const { photo, income_proof, address_proof } = files;
 
-        if (!['image/jpg', 'image/jpeg', 'image/png'].includes(photo[0].mimetype)) {
+        if (!photo || !['image/jpg', 'image/jpeg', 'image/png'].includes(photo[0].mimetype)) {
             throw new HttpException('Photo must be of image type', 400);
         } else if (photo[0].size > 2 * 1024 * 1000) {
             throw new HttpException('Photo size must be of less than 2 MB', 400);
         }
 
-        if (!['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'].includes(income_proof[0].mimetype) || !['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'].includes(address_proof[0].mimetype)) {
+        if (!income_proof || !address_proof || !['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'].includes(income_proof[0].mimetype) || !['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'].includes(address_proof[0].mimetype)) {
             throw new HttpException('Document must be of image or pdf type', 400);
         } else if (income_proof[0].size > 2 * 1024 * 1000 || address_proof[0].size > 2 * 1024 * 1000) {
             throw new HttpException('Document size must be of less than 2 MB', 400);

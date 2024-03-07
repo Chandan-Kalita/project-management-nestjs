@@ -12,25 +12,17 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  phoneNumber String?  @unique
+  id          String     @id @default(uuid())
+  phoneNumber String?    @unique
   name        String?
   email       String
   password    String
-  userType    UserType @default(USER)
+  userType    UserType   @default(USER)
+  proposals   Proposal[] @relation("userToProposal")
 }
 
-// model Referals {
-//   id               String   @id @default(uuid())
-//   referringUserId  String   @unique //the user who is being refered
-//   referringUser    User     @relation("referringUser", fields: [referringUserId], references: [id])
-//   referredByUserId String //the use who referred
-//   referredBy       User     @relation("referredBy", fields: [referredByUserId], references: [id])
-//   createdAt        DateTime @default(now())
-// }
-
 model Proposal {
-  id                  String @id @default(uuid())
+  id                  String                    @id @default(uuid())
   project_title       String
   project_description String
   objective           String
@@ -47,6 +39,39 @@ model Proposal {
   photo_path          String
   address_proof_path  String
   income_proof_path   String
+  user_id             String
+  user                User                      @relation("userToProposal", fields: [user_id], references: [id])
+  prevVersionId       String?
+  prevVersion         Proposal?                 @relation("prevVersionRelation", fields: [prevVersionId], references: [id])
+  childVersions       Proposal[]                @relation("prevVersionRelation")
+  status              ProposalStatus            @default(PENDING)
+  adminComment        String?
+  rejectionReason     ProposalRejectionReason[]
+}
+
+enum ProposalRejectionReason {
+  project_title
+  project_description
+  objective
+  duration
+  budget
+  state
+  district
+  bank_name
+  ifsc_code
+  account_number
+  income_source
+  income
+  land_size
+  photo
+  address_proof
+  income_proof
+}
+
+enum ProposalStatus {
+  ACCEPTED
+  REJECTED
+  PENDING
 }
 
 enum UserType {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Post } from 'src/schema/post.schema';
@@ -16,47 +16,68 @@ export class ProposalService {
     ) { }
 
     async create(body: CreateProposalDto, user: { id: any; }, files: { photo: Express.Multer.File, income_proof: Express.Multer.File, address_proof: Express.Multer.File }) {
-        const bucket = firebaseAdmin.storage().bucket("gs://jrpl-dev.appspot.com")
-        const fileRef = bucket.file("task.pdf")
-        await fileRef.save(files.income_proof[0].buffer);
-        return await getDownloadURL(fileRef);
-        return await this.prismaClient.$transaction(async (tx) => {
-            const photo_path = `${uuid()}${files.photo[0].originalname}`;
-            const income_proof_path = `${uuid()}${files.income_proof[0].originalname}`;
-            const address_proof_path = `${uuid()}${files.address_proof[0].originalname}`;
-            // await fs.writeFile(photo_path, files.photo[0].buffer)
-            // await fs.writeFile(income_proof_path, files.income_proof[0].buffer)
-            // await fs.writeFile(income_proof_path, files.income_proof[0].buffer)
+        try {
+            const proposal = await this.prismaClient.$transaction(async (tx) => {
 
-            // const sender = await tx.account.update({
-            //   data: {
-            //     balance: {
-            //       decrement: amount,
-            //     },
-            //   },
-            //   where: {
-            //     email: from,
-            //   },
-            // })
+                const bucket = firebaseAdmin.storage().bucket("gs://jrpl-dev.appspot.com")
 
-            // // 2. Verify that the sender's balance didn't go below zero.
-            // if (sender.balance < 0) {
-            //   throw new Error(`${from} doesn't have enough to send ${amount}`)
-            // }
+                const photo_name = `chandan_test/${uuid()}${files.photo[0].originalname}`;
+                const income_proof_name = `chandan_test/${uuid()}${files.income_proof[0].originalname}`;
+                const address_proof_name = `chandan_test/${uuid()}${files.address_proof[0].originalname}`;
 
-            // // 3. Increment the recipient's balance by amount
-            // const recipient = await tx.account.update({
-            //   data: {
-            //     balance: {
-            //       increment: amount,
-            //     },
-            //   },
-            //   where: {
-            //     email: to,
-            //   },
-            // })
 
-            // return recipient
-        })
+                const photo_ref = bucket.file(photo_name)
+                await photo_ref.save(files.photo[0].buffer);
+                const photo_path = await getDownloadURL(photo_ref);
+
+                const income_proof_ref = bucket.file(income_proof_name)
+                await income_proof_ref.save(files.income_proof[0].buffer);
+                const income_proof_path = await getDownloadURL(income_proof_ref);
+
+                const address_proof_ref = bucket.file(address_proof_name)
+                await address_proof_ref.save(files.address_proof[0].buffer);
+                const address_proof_path = await getDownloadURL(address_proof_ref);
+
+                if (!address_proof_path || !income_proof_path || !photo_path) {
+                    throw new Error("Error in file upload");
+                }
+
+                const proposal = tx.proposal.create({
+                    data: {
+                        project_title: body.project_title,
+                        project_description: body.project_description,
+                        objective: body.objective,
+                        duration: body.duration,
+                        budget: body.budget,
+                        state: body.state,
+                        district: body.district,
+                        bank_name: body.bank_name,
+                        ifsc_code: body.ifsc_code,
+                        account_number: body.account_number,
+                        income_source: body.income_source,
+                        income: body.income,
+                        land_size: body.land_size,
+                        photo_path: photo_path,
+                        address_proof_path: address_proof_path,
+                        income_proof_path: income_proof_path,
+                        user_id: user.id
+                    }
+                })
+                if (!proposal) {
+                    await photo_ref.delete()
+                    await income_proof_ref.delete()
+                    await address_proof_ref.delete()
+                    throw new Error("Error in db insert");
+                }
+                return proposal;
+
+            }, {
+                timeout: 10000
+            })
+        } catch (error) {
+            console.log(error);
+            // throw new HttpException(error, 400);
+            throw new HttpException(error.message, 400);
+        }
     }
 }
