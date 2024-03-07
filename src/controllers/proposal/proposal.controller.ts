@@ -1,10 +1,11 @@
-import { Body, Controller, FileTypeValidator, Get, HttpException, MaxFileSizeValidator, ParseFilePipe, Post, Query, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, HttpException, MaxFileSizeValidator, Param, ParseFilePipe, Post, Query, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Authenticate } from 'src/guards/auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { ProposalService } from 'src/services/proposal.service';
 import { CreateProposalDto } from './dto/proposal-create.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { GetProposalsDto } from './dto/proposal-get.dto';
+import { ChangeProposalStatusDto } from './dto/change-proposal-status.dto';
 const fs = require("node:fs/promises");
 @Controller('proposal')
 export class ProposalController {
@@ -50,5 +51,20 @@ export class ProposalController {
     async getProposalCount(@User() user) {
         return await this.proposalService.getProposalsCount(user)
     }
+
+    @UseGuards(Authenticate)
+    @Post("/change-status")
+    async changeProposalStatus(@User() user, @Body() body:ChangeProposalStatusDto) {
+        return await this.proposalService.changeProposalDetailStatus(user, body)
+    }
+
+
+
+    @UseGuards(Authenticate)
+    @Get(":id")
+    async getProposalDetails(@User() user, @Param("id") id:string) {
+        return await this.proposalService.getProposalDetails(user, id)
+    }
+
 
 }

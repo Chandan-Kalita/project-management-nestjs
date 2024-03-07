@@ -9,6 +9,7 @@ import { v4 as uuid } from "uuid";
 import { firebaseAdmin } from './helpers/firebase.service';
 import { getDownloadURL } from 'firebase-admin/storage';
 import { GetProposalsDto } from '../controllers/proposal/dto/proposal-get.dto';
+import { ChangeProposalStatusDto } from 'src/controllers/proposal/dto/change-proposal-status.dto';
 
 @Injectable()
 export class ProposalService {
@@ -106,6 +107,29 @@ export class ProposalService {
                     where: whereObj
                 })
             }
+        }else{
+            const whereObj = {}
+            if (filters) {
+                if (filters.proposalStatus) {
+                    whereObj["status"] = filters.proposalStatus
+                }
+            }
+            return {
+                proposals: await this.prismaClient.proposal.findMany({
+                    where: whereObj,
+                    select: {
+                        id: true,
+                        project_title: true,
+                        objective: true,
+                        budget: true,
+                        status: true,
+                    }
+                }),
+                count: await this.prismaClient.proposal.count({
+                    where: whereObj
+                })
+            }
+
         }
     }
 
@@ -126,12 +150,44 @@ export class ProposalService {
             a["ALL"] += count[i]._count.id
         }
         return a;
-        // for(const property in count){
-        //     console.log();
-            
-        // }
+    }
+
+    async getProposalDetails(user, id){
+        if(user.userType == "ADMIN"){
+            return await this.prismaClient.proposal.findFirst({ 
+                where:{
+                    id
+                },
+                include:{
+                    user:true,
+                }
+            })
+        }else{
+            return await this.prismaClient.proposal.findFirst({ 
+                where:{
+                    id,
+                    user_id:user.id
+                },
+                include:{
+                    user:true,
+                }
+            })
+        }
+    }
+
+    async changeProposalDetailStatus(user, newStatus:ChangeProposalStatusDto){
+        let data = {status:newStatus.status};
+        if(newStatus.status == "REJECTED"){
+            data["adminComment"] = newStatus.comment
+            data["rejectionReason"] = {push:newStatus.rejectionField}
+        }
+        console.log(data);
         
-
-
+        return await this.prismaClient.proposal.update({
+            data,
+            where:{
+                id: newStatus.id,
+            }
+        })
     }
 }
