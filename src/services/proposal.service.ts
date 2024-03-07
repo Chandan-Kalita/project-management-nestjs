@@ -8,6 +8,7 @@ const fs = require("node:fs/promises");
 import { v4 as uuid } from "uuid";
 import { firebaseAdmin } from './helpers/firebase.service';
 import { getDownloadURL } from 'firebase-admin/storage';
+import { GetProposalsDto } from '../controllers/proposal/dto/proposal-get.dto';
 
 @Injectable()
 export class ProposalService {
@@ -78,6 +79,33 @@ export class ProposalService {
             console.log(error);
             // throw new HttpException(error, 400);
             throw new HttpException(error.message, 400);
+        }
+    }
+    async getProposals(user, filters: GetProposalsDto | undefined) {
+        if (user.userType == "USER") {
+            const whereObj = {
+                user_id: user.id
+            }
+            if (filters) {
+                if (filters.proposalStatus) {
+                    whereObj["status"] = filters.proposalStatus
+                }
+            }
+            return {
+                proposals: await this.prismaClient.proposal.findMany({
+                    where: whereObj,
+                    select: {
+                        id: true,
+                        project_title: true,
+                        objective: true,
+                        budget: true,
+                        status: true,
+                    }
+                }),
+                count: await this.prismaClient.proposal.count({
+                    where: whereObj
+                })
+            }
         }
     }
 }

@@ -1,9 +1,10 @@
-import { Body, Controller, FileTypeValidator, HttpException, MaxFileSizeValidator, ParseFilePipe, Post, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, HttpException, MaxFileSizeValidator, ParseFilePipe, Post, Query, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Authenticate } from 'src/guards/auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { ProposalService } from 'src/services/proposal.service';
 import { CreateProposalDto } from './dto/proposal-create.dto';
-import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { GetProposalsDto } from './dto/proposal-get.dto';
 const fs = require("node:fs/promises");
 @Controller('proposal')
 export class ProposalController {
@@ -35,13 +36,13 @@ export class ProposalController {
         } else if (income_proof[0].size > 2 * 1024 * 1000 || address_proof[0].size > 2 * 1024 * 1000) {
             throw new HttpException('Document size must be of less than 2 MB', 400);
         }
-
-        // console.log(files);
         return await this.proposalService.create(body, user, files)
-
-        // console.log(files.photo[0].buffer.toString());
-
-        // return await fs.writeFile("./task.pdf", files.photo[0].buffer)
-        // return await this.postService.create(body, user)
     }
+
+    @UseGuards(Authenticate)
+    @Post("get")
+    async getMany(@User() user, @Body() filters: GetProposalsDto | undefined) {
+        return await this.proposalService.getProposals(user, filters)
+    }
+
 }
