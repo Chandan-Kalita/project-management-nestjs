@@ -39,6 +39,9 @@ model Proposal {
   photo_path          String
   address_proof_path  String
   income_proof_path   String
+  photo_path_ref          String @default("")
+  address_proof_path_ref  String @default("")
+  income_proof_path_ref   String @default("")
   user_id             String
   user                User                      @relation("userToProposal", fields: [user_id], references: [id])
   prevVersionId       String?

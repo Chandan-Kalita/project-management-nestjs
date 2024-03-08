@@ -6,6 +6,7 @@ import { CreateProposalDto } from './dto/proposal-create.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { GetProposalsDto } from './dto/proposal-get.dto';
 import { ChangeProposalStatusDto } from './dto/change-proposal-status.dto';
+import { UpdateProposalDto } from './dto/proposal-update.dto';
 const fs = require("node:fs/promises");
 @Controller('proposal')
 export class ProposalController {
@@ -66,5 +67,35 @@ export class ProposalController {
         return await this.proposalService.getProposalDetails(user, id)
     }
 
+
+    @UseGuards(Authenticate)
+    @Post("/update")
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'photo' },
+        { name: 'income_proof' },
+        { name: 'address_proof' },
+    ]))
+    async update(
+        @Body() body: UpdateProposalDto,
+        @User() user,
+        @UploadedFiles(
+        ) files: { photo: Express.Multer.File, income_proof: Express.Multer.File, address_proof: Express.Multer.File },
+    ) {
+        const { photo, income_proof, address_proof } = files;
+        console.log(files);
+        
+        if (photo && !['image/jpg', 'image/jpeg', 'image/png'].includes(photo[0].mimetype)) {
+            throw new HttpException('Photo must be of image type', 400);
+        } else if (photo && photo[0].size > 2 * 1024 * 1000) {
+            throw new HttpException('Photo size must be of less than 2 MB', 400);
+        }
+
+        if ((income_proof && !['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'].includes(income_proof[0].mimetype)) || (address_proof && !['application/pdf', 'image/jpg', 'image/jpeg', 'image/png'].includes(address_proof[0].mimetype))) {
+            throw new HttpException('Document must be of image or pdf type', 400);
+        } else if ((income_proof && income_proof[0].size > 2 * 1024 * 1000) || (address_proof && address_proof[0].size > 2 * 1024 * 1000)) {
+            throw new HttpException('Document size must be of less than 2 MB', 400);
+        }
+        return await this.proposalService.update(body, user, files)
+    }
 
 }
