@@ -26,8 +26,8 @@ model Proposal {
   project_title       String
   project_description String
   objective           String
-  duration            Int
-  budget              Int
+  duration            Float @default(0)
+  budget              Float @default(0)
   state               String
   district            String
   bank_name           String
@@ -35,7 +35,7 @@ model Proposal {
   account_number      String
   income_source       String
   income              String
-  land_size           Int
+  land_size           Float @default(0)
   photo_path          String
   address_proof_path  String
   income_proof_path   String
