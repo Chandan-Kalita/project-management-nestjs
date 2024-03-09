@@ -7,6 +7,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { GetProposalsDto } from './dto/proposal-get.dto';
 import { ChangeProposalStatusDto } from './dto/change-proposal-status.dto';
 import { UpdateProposalDto } from './dto/proposal-update.dto';
+import { ReapplyProposalDto } from './dto/proposal-reapply.dto';
 const fs = require("node:fs/promises");
 @Controller('proposal')
 export class ProposalController {
@@ -106,7 +107,7 @@ export class ProposalController {
         { name: 'address_proof' },
     ]))
     async reapply(
-        @Body() body: UpdateProposalDto,
+        @Body() body: ReapplyProposalDto,
         @User() user,
         @UploadedFiles(
         ) files: { photo: Express.Multer.File, income_proof: Express.Multer.File, address_proof: Express.Multer.File },

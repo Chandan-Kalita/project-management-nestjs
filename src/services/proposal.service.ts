@@ -317,15 +317,10 @@ export class ProposalService {
             const proposal = await this.prismaClient.$transaction(async (tx) => {
 
                 const bucket = firebaseAdmin.storage().bucket("gs://jrpl-dev.appspot.com")
-                let imageData = await tx.proposal.findFirst({
+                let prevData = await tx.proposal.findFirst({
                     where:{
                         id: body.id
                     },
-                    select:{
-                        photo_path_ref:true,
-                        income_proof_path_ref:true,
-                        address_proof_path_ref:true,
-                    }
                 })
                 async function uploadFiles(file){
                     const file_name = `chandan_test/${uuid()}${files[file][0].originalname}`;
@@ -354,56 +349,46 @@ export class ProposalService {
 
                 if (files.photo) {
                     let photo_loc = await uploadFiles("photo")
-                    updatedFiles["photo_path"] = photo_loc.file_url
-                    updatedFiles["photo_path_ref"] = photo_loc.file_name
+                    prevData["photo_path"] = photo_loc.file_url
+                    prevData["photo_path_ref"] = photo_loc.file_name
                 }else{
-                    let photo_loc = await copyFile(imageData.photo_path_ref)
-                    updatedFiles["photo_path"] = photo_loc.file_url
-                    updatedFiles["photo_path_ref"] = photo_loc.file_name
+                    let photo_loc = await copyFile(prevData.photo_path_ref)
+                    prevData["photo_path"] = photo_loc.file_url
+                    prevData["photo_path_ref"] = photo_loc.file_name
                 }
 
                 if (files.income_proof) {
                     let income_loc = await uploadFiles("income_proof")
-                    updatedFiles["income_proof_path"] = income_loc.file_url
-                    updatedFiles["income_proof_path_ref"] = income_loc.file_name
+                    prevData["income_proof_path"] = income_loc.file_url
+                    prevData["income_proof_path_ref"] = income_loc.file_name
                 }else{
-                    let income_loc = await copyFile(imageData.income_proof_path_ref)
-                    updatedFiles["income_proof_path"] = income_loc.file_url
-                    updatedFiles["income_proof_path_ref"] = income_loc.file_name
+                    let income_loc = await copyFile(prevData.income_proof_path_ref)
+                    prevData["income_proof_path"] = income_loc.file_url
+                    prevData["income_proof_path_ref"] = income_loc.file_name
                 }
 
                 if (files.address_proof) {
                     let address_loc = await uploadFiles("address_proof")
-                    updatedFiles["address_proof_path"] = address_loc.file_url
-                    updatedFiles["address_proof_path_ref"] = address_loc.file_name
+                    prevData["address_proof_path"] = address_loc.file_url
+                    prevData["address_proof_path_ref"] = address_loc.file_name
                 }else{
-                    let address_loc = await copyFile(imageData.address_proof_path_ref)
-                    updatedFiles["address_proof_path"] = address_loc.file_url
-                    updatedFiles["address_proof_path_ref"] = address_loc.file_name
+                    let address_loc = await copyFile(prevData.address_proof_path_ref)
+                    prevData["address_proof_path"] = address_loc.file_url
+                    prevData["address_proof_path_ref"] = address_loc.file_name
                 }
 
-
+                for(const updatedField in body){
+                    prevData[updatedField] = body[updatedField]
+                    prevData["prevVersionId"] = body.id;
+                }
+                delete prevData.id;
+                delete prevData.adminComment;
+                delete prevData.rejectionReason;
+                delete prevData.status;
                 const proposal = tx.proposal.create({
-                    data: {
-                        prevVersionId: body.id,
-                        project_title: body.project_title,
-                        project_description: body.project_description,
-                        objective: body.objective,
-                        duration: body.duration,
-                        budget: body.budget,
-                        state: body.state,
-                        district: body.district,
-                        bank_name: body.bank_name,
-                        ifsc_code: body.ifsc_code,
-                        account_number: body.account_number,
-                        income_source: body.income_source,
-                        income: body.income,
-                        land_size: body.land_size,
-                        user_id: user.id,
-                        ...updatedFiles
-                    },
-
+                    data: prevData,
                 })
+
                 if (!proposal) {
                     if(updatedFiles.address_proof_path_ref){
                         await bucket.file(updatedFiles.address_proof_path_ref).delete()
